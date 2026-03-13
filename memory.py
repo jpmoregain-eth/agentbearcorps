@@ -77,8 +77,10 @@ class AgentMemory:
         conn.commit()
         conn.close()
         
-        # Auto-trim old messages for this session (keep last 100)
-        self._trim_session_messages(session_id, keep_last=100)
+        # Optional: Auto-trim only if session gets extremely large (10000+ messages)
+        # This prevents database corruption from runaway sessions
+        # Most conversations won't hit this limit
+        self._trim_session_if_excessive(session_id, max_messages=10000)
     
     def get_conversation_history(self, session_id: str, limit: int = 50) -> List[Dict]:
         """Get conversation history for a session"""
@@ -209,29 +211,40 @@ class AgentMemory:
         conn.commit()
         conn.close()
     
-    def _trim_session_messages(self, session_id: str, keep_last: int = 100):
-        """Auto-trim old messages for a session, keeping only the most recent N"""
+    def _trim_session_if_excessive(self, session_id: str, max_messages: int = 10000):
+        """Only trim if session has excessive messages (safety measure)"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
-        # Delete all but the most recent N messages for this session
+        # Check current count
         cursor.execute('''
-            DELETE FROM conversations
-            WHERE session_id = ?
-            AND id NOT IN (
-                SELECT id FROM conversations
+            SELECT COUNT(*) FROM conversations WHERE session_id = ?
+        ''', (session_id,))
+        count = cursor.fetchone()[0]
+        
+        # Only trim if extremely excessive (prevents runaway DB growth)
+        if count > max_messages:
+            # Keep last 90% to preserve most context
+            keep_count = int(max_messages * 0.9)
+            
+            cursor.execute('''
+                DELETE FROM conversations
                 WHERE session_id = ?
-                ORDER BY timestamp DESC
-                LIMIT ?
+                AND id NOT IN (
+                    SELECT id FROM conversations
+                    WHERE session_id = ?
+                    ORDER BY timestamp DESC
+                    LIMIT ?
+                )
+            ''', (session_id, session_id, keep_count))
+            
+            deleted = cursor.rowcount
+            conn.commit()
+            logging.getLogger(__name__).warning(
+                f"Session {session_id} had {count} messages, trimmed {deleted} old ones"
             )
-        ''', (session_id, session_id, keep_last))
         
-        deleted = cursor.rowcount
-        conn.commit()
         conn.close()
-        
-        if deleted > 0:
-            logging.getLogger(__name__).debug(f"Trimmed {deleted} old messages from session {session_id}")
     
     def cleanup_old_sessions(self, days: int = 30):
         """Remove sessions older than N days"""
