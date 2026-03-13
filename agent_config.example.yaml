@@ -1,0 +1,39 @@
+# ABC AI - Agent Configuration
+# Copy this file to agent_config.yaml and fill in your API keys
+
+agent:
+  name: my-agent
+  owner: Derek
+  personas:
+    - professional
+    - humorous
+  language: en
+  version: "1.0.0"
+
+models:
+  primary: claude-sonnet-4-6
+  providers:
+    anthropic:
+      api_key: "YOUR_ANTHROPIC_API_KEY"
+    openai:
+      api_key: "YOUR_OPENAI_API_KEY"
+    # google:
+    #   api_key: "YOUR_GOOGLE_API_KEY"
+    # xai:
+    #   api_key: "YOUR_XAI_API_KEY"
+    # deepseek:
+    #   api_key: "YOUR_DEEPSEEK_API_KEY"
+
+capabilities:
+  code_generate:
+    enabled: true
+  code_review:
+    enabled: true
+  web_search:
+    enabled: false
+  telegram_bot:
+    enabled: false
+
+memory:
+  enabled: true
+  db_path: "agent_memory.db"
