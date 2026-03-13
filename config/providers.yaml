@@ -1,0 +1,228 @@
+# AI Model Providers Configuration
+# Curated list: 4 best American + 4 best Chinese cloud models
+
+# 🇺🇸 AMERICAN MODELS
+
+anthropic:
+  name: Anthropic (USA)
+  description: Claude models - Best for coding and reasoning
+  endpoint: https://api.anthropic.com/v1/messages
+  api_key_prefix: sk-ant-
+  docs_url: https://console.anthropic.com
+  region: US
+  models:
+    - id: claude-opus-4-6
+      name: Claude Opus 4.6
+      context: 200K
+      description: Most intelligent - complex tasks, agentic workflows
+    - id: claude-sonnet-4-6
+      name: Claude Sonnet 4.6
+      context: 200K
+      recommended: true
+      description: Best balance - coding & computer use
+    - id: claude-haiku-4-5
+      name: Claude Haiku 4.5
+      context: 200K
+      description: Fastest - cost-effective for simple queries
+
+openai:
+  name: OpenAI (USA)
+  description: GPT-5 series - Advanced reasoning & agentic capabilities
+  endpoint: https://api.openai.com/v1/chat/completions
+  api_key_prefix: sk-
+  docs_url: https://platform.openai.com
+  region: US
+  models:
+    - id: gpt-5-4-pro
+      name: GPT-5.4 Pro
+      context: 1M
+      description: Most advanced - deep research, high-stakes tasks
+    - id: gpt-5-4
+      name: GPT-5.4
+      context: 1M
+      recommended: true
+      description: Flagship model - coding, reasoning, agentic use
+    - id: gpt-5-mini
+      name: GPT-5 Mini
+      context: 1M
+      description: Fast, cost-efficient high-level reasoning
+    - id: gpt-5-nano
+      name: GPT-5 Nano
+      context: 1M
+      description: Fastest, most cost-effective for simple tasks
+
+google:
+  name: Google Gemini (USA)
+  description: Gemini 3 series - Multimodal frontier models
+  endpoint: https://generativelanguage.googleapis.com/v1beta
+  api_key_prefix: ""
+  docs_url: https://ai.google.dev
+  region: US
+  models:
+    - id: gemini-3-pro
+      name: Gemini 3 Pro
+      context: 2M
+      recommended: true
+      description: High-capability - complex reasoning & coding
+    - id: gemini-3-deep-think
+      name: Gemini 3 Deep Think
+      context: 2M
+      description: Extreme complexity - science & research
+    - id: gemini-3-flash
+      name: Gemini 3 Flash
+      context: 2M
+      description: Fast, cost-effective multimodal
+    - id: gemini-3-1-flash-lite
+      name: Gemini 3.1 Flash-Lite
+      context: 2M
+      description: Most cost-efficient, low-latency
+    - id: gemini-3-pro-image
+      name: Gemini 3 Pro Image
+      context: 2M
+      description: High-fidelity image generation
+
+xai:
+  name: xAI (USA)
+  description: Grok-4 series - Real-time reasoning & multi-agent
+  endpoint: https://api.x.ai/v1/chat/completions
+  api_key_prefix: xai-
+  docs_url: https://console.x.ai
+  region: US
+  models:
+    - id: grok-4-heavy
+      name: Grok-4 Heavy
+      context: 128K
+      description: Premium multi-agent - several agents working together
+    - id: grok-4
+      name: Grok-4
+      context: 128K
+      recommended: true
+      description: Improved reasoning on complex tasks
+    - id: grok-4-code
+      name: Grok-4 Code
+      context: 128K
+      description: Specialized for coding assistance
+    - id: grok-4-1
+      name: Grok 4.1
+      context: 128K
+      description: Better conversational flow & emotional intelligence
+
+# 🇨🇳 CHINESE MODELS
+
+deepseek:
+  name: DeepSeek (China)
+  description: High-performance, cost-effective MoE models
+  endpoint: https://api.deepseek.com/v1/chat/completions
+  api_key_prefix: sk-
+  docs_url: https://platform.deepseek.com
+  region: CN
+  models:
+    - id: deepseek-v3-2-speciale
+      name: DeepSeek-V3.2 Speciale
+      context: 128K
+      description: Advanced mathematical reasoning - Olympiad-level
+    - id: deepseek-v3-2
+      name: DeepSeek-V3.2
+      context: 128K
+      recommended: true
+      description: Agentic workflows & high-level reasoning
+    - id: deepseek-v3
+      name: DeepSeek-V3
+      context: 64K
+      description: General-purpose, coding, mathematics
+    - id: deepseek-r1
+      name: DeepSeek-R1
+      context: 64K
+      description: Reasoning-focused - shows thought process
+    - id: deepseek-prover-v2
+      name: DeepSeek-Prover-V2
+      context: 64K
+      description: Formal theorem proving in Lean 4
+
+alibaba:
+  name: Qwen (Alibaba - China)
+  description: Qwen3 & Qwen3.5 series - Agentic capabilities
+  endpoint: https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+  api_key_prefix: sk-
+  docs_url: https://dashscope.aliyun.com
+  region: CN
+  models:
+    - id: qwen3-max
+      name: Qwen3-Max
+      context: 1M
+      description: Largest model - 1T+ params, complex reasoning
+    - id: qwen3-5-plus
+      name: Qwen3.5-Plus
+      context: 1M
+      recommended: true
+      description: Agentic inflection - web browsing, coding, reasoning
+    - id: qwen3-5-small
+      name: Qwen3.5-Small
+      context: 1M
+      description: Efficient, on-device capabilities
+    - id: qwen3-5-coder
+      name: Qwen3.5-Coder
+      context: 1M
+      description: High-speed coding & software development
+
+moonshot:
+  name: Moonshot AI (China)
+  description: Kimi K2 family - Open-source agentic reasoning
+  endpoint: https://api.moonshot.cn/v1/chat/completions
+  api_key_prefix: sk-
+  docs_url: https://platform.moonshot.cn
+  region: CN
+  models:
+    - id: kimi-k2-5
+      name: Kimi K2.5
+      context: 256K
+      recommended: true
+      description: Most powerful - multimodal, coordinates 100 sub-agents
+    - id: kimi-k2-thinking
+      name: Kimi K2 Thinking
+      context: 256K
+      description: Deep reasoning - 200-300+ sequential tool calls
+    - id: kimi-k2-instruct
+      name: Kimi K2 Instruct
+      context: 256K
+      description: General-purpose coding & reasoning
+
+baidu:
+  name: ERNIE (Baidu - China)
+  description: ERNIE 5.0 series - Native omni-modality
+  endpoint: https://qianfan.baidubce.com/v2/chat/completions
+  api_key_prefix: ""
+  docs_url: https://qianfan.cloud.baidu.com
+  region: CN
+  models:
+    - id: ernie-5-0
+      name: ERNIE 5.0
+      context: 128K
+      recommended: true
+      description: Flagship - omni-modal, reasoning, agentic planning
+    - id: ernie-4-5-turbo
+      name: ERNIE 4.5 Turbo
+      context: 128K
+      description: Fast inference, lower cost, multimodal
+    - id: ernie-4-5
+      name: ERNIE 4.5
+      context: 128K
+      description: Advanced multimodal, charts & images
+    - id: ernie-4-5-vl-thinking
+      name: ERNIE-4.5-VL Thinking
+      context: 128K
+      description: Open-source - "Thinking with Images"
+
+# 🌍 OTHER PROVIDERS
+
+custom:
+  name: Custom / Local
+  description: OpenAI-compatible endpoint (Ollama, LocalAI, etc.)
+  endpoint: http://localhost:11434/v1/chat/completions
+  api_key_prefix: optional
+  docs_url: ""
+  region: Local
+  models:
+    - id: custom-model
+      name: Custom Model
+      description: Your own model

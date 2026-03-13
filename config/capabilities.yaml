@@ -1,0 +1,152 @@
+# Capabilities Configuration
+# Organized by category - add or remove capabilities here
+
+code:
+  name: Code & Development
+  description: Tools for writing, reviewing, and managing code
+  items:
+    - id: code_generate
+      name: Code Generation
+      description: Generate code from natural language descriptions
+      requires_api_key: false
+      
+    - id: code_review
+      name: Code Review
+      description: Analyze code for bugs, security issues, best practices
+      requires_api_key: false
+      
+    - id: code_refactor
+      name: Code Refactoring
+      description: Improve code structure and readability
+      requires_api_key: false
+      
+    - id: test_generate
+      name: Test Generation
+      description: Create unit tests for existing code
+      requires_api_key: false
+      
+    - id: debug
+      name: Debug Assistant
+      description: Diagnose and suggest fixes for errors
+      requires_api_key: false
+      
+    - id: documentation
+      name: Documentation
+      description: Generate docstrings and documentation
+      requires_api_key: false
+      
+    - id: git_ops
+      name: Git Operations
+      description: Commit, push, pull, branch management
+      requires_api_key: false
+
+web:
+  name: Web & Search
+  description: Tools for searching and retrieving web content
+  items:
+    - id: web_search_brave
+      name: Web Search (Brave)
+      description: Search the web using Brave Search API
+      requires_api_key: true
+      key_name: brave_api_key
+      key_description: Brave Search API Key
+      
+    - id: web_search_serper
+      name: Web Search (Serper)
+      description: Google Search via Serper API
+      requires_api_key: true
+      key_name: serper_api_key
+      key_description: Serper.dev API Key
+      
+    - id: web_fetch
+      name: Web Fetch
+      description: Retrieve and parse web page content
+      requires_api_key: false
+
+file:
+  name: File Operations
+  description: Tools for reading, writing, and editing files
+  items:
+    - id: file_read
+      name: File Read
+      description: Read files with syntax highlighting
+      requires_api_key: false
+      
+    - id: file_write
+      name: File Write
+      description: Create or overwrite files
+      requires_api_key: false
+      
+    - id: file_edit
+      name: File Edit
+      description: Make surgical edits to existing files
+      requires_api_key: false
+      
+    - id: directory_list
+      name: Directory Listing
+      description: List files and folders
+      requires_api_key: false
+
+communication:
+  name: Communication
+  description: Integrations with messaging platforms
+  items:
+    - id: telegram_bot
+      name: Telegram Bot
+      description: Interact via Telegram messaging
+      requires_api_key: true
+      key_name: telegram_bot_token
+      key_description: Telegram Bot Token (from @BotFather)
+      
+    - id: discord_bot
+      name: Discord Bot
+      description: Interact via Discord messaging
+      requires_api_key: true
+      key_name: discord_bot_token
+      key_description: Discord Bot Token
+      
+    - id: slack_integration
+      name: Slack Integration
+      description: Post messages to Slack channels
+      requires_api_key: true
+      key_name: slack_token
+      key_description: Slack API Token
+
+dev_tools:
+  name: Developer Tools
+  description: Integrations with developer platforms
+  items:
+    - id: github_integration
+      name: GitHub Integration
+      description: Create PRs, issues, read repositories
+      requires_api_key: true
+      key_name: github_token
+      key_description: GitHub Personal Access Token
+      
+    - id: gitlab_integration
+      name: GitLab Integration
+      description: GitLab API operations
+      requires_api_key: true
+      key_name: gitlab_token
+      key_description: GitLab Access Token
+
+specialized:
+  name: Specialized
+  description: Domain-specific tools and integrations
+  items:
+    - id: crypto_trading
+      name: Crypto Trading
+      description: Connect to Binance, analyze markets
+      requires_api_key: true
+      key_name: binance_api_key
+      key_description: Binance API Key
+      requires_secret: true
+      secret_name: binance_api_secret
+      secret_description: Binance API Secret
+      
+    - id: database_query
+      name: Database Query
+      description: Query SQL databases
+      requires_api_key: true
+      key_name: database_connection_string
+      key_description: Database Connection String

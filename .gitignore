@@ -3,3 +3,4 @@ __pycache__/
 *.db
 *.yaml
 !agent_config.example.yaml
+!config/*.yaml

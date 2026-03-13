@@ -1,0 +1,41 @@
+# Supported Languages for Interface
+
+- code: en
+  name: English
+  flag: 🇺🇸
+
+- code: zh
+  name: Chinese (中文)
+  flag: 🇨🇳
+
+- code: es
+  name: Spanish (Español)
+  flag: 🇪🇸
+
+- code: fr
+  name: French (Français)
+  flag: 🇫🇷
+
+- code: de
+  name: German (Deutsch)
+  flag: 🇩🇪
+
+- code: ja
+  name: Japanese (日本語)
+  flag: 🇯🇵
+
+- code: ko
+  name: Korean (한국어)
+  flag: 🇰🇷
+
+- code: pt
+  name: Portuguese (Português)
+  flag: 🇵🇹
+
+- code: ru
+  name: Russian (Русский)
+  flag: 🇷🇺
+
+- code: it
+  name: Italian (Italiano)
+  flag: 🇮🇹
