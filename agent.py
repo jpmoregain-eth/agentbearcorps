@@ -69,6 +69,14 @@ class ABCAIAgent:
         
         self._setup_providers()
         
+        # Initialize file tools if capability enabled
+        self.file_tools = None
+        if any(cap in ['file_read', 'file_write', 'file_edit', 'directory_list'] 
+               for cap in self.config.capabilities.keys()):
+            from file_tools import FileTools
+            self.file_tools = FileTools(security_config.allowed_base_dir)
+            logger.info("📁 File tools initialized")
+        
         # Start Telegram bot if capability enabled
         self.telegram_app = None
         if TELEGRAM_AVAILABLE and 'telegram_bot' in self.config.capabilities:
@@ -212,6 +220,52 @@ Always be helpful, accurate, and responsive.
         
         return None
     
+    def _execute_file_command(self, message: str) -> Optional[Dict]:
+        """
+        Detect and execute file-related commands
+        Returns result if a file command was executed, None otherwise
+        """
+        if not self.file_tools:
+            return None
+        
+        import re
+        msg_lower = message.lower().strip()
+        
+        # File read: "read file X" or "show file X" or "cat X"
+        read_patterns = [
+            r'(?:read|show|cat|display)\s+(?:file\s+)?["\']?(.+?)["\']?(?:\s|$)',
+            r'(?:open|view)\s+(?:file\s+)?["\']?(.+?)["\']?(?:\s|$)',
+        ]
+        for pattern in read_patterns:
+            match = re.search(pattern, msg_lower)
+            if match:
+                file_path = match.group(1).strip()
+                return self.file_tools.read_file(file_path)
+        
+        # Directory list: "list files" or "ls" or "show directory"
+        if any(cmd in msg_lower for cmd in ['list files', 'list directory', 'ls', 'show files']):
+            # Extract directory path if specified
+            dir_match = re.search(r'(?:in|from|of)\s+["\']?(.+?)["\']?(?:\s|$)', msg_lower)
+            dir_path = dir_match.group(1) if dir_match else "."
+            return self.file_tools.list_directory(dir_path)
+        
+        # File write: "write X to file Y" or "create file Y with X"
+        write_match = re.search(r'(?:write|save)\s+["\']?(.+?)["\']?\s+to\s+(?:file\s+)?["\']?(.+?)["\']?$', msg_lower)
+        if write_match:
+            content = write_match.group(1)
+            file_path = write_match.group(2)
+            return self.file_tools.write_file(file_path, content)
+        
+        # File edit: "change X to Y in file Z" or "replace X with Y in file Z"
+        edit_match = re.search(r'(?:change|replace|edit)\s+["\']?(.+?)["\']?\s+to\s+["\']?(.+?)["\']?\s+in\s+(?:file\s+)?["\']?(.+?)["\']?$', msg_lower)
+        if edit_match:
+            old_text = edit_match.group(1)
+            new_text = edit_match.group(2)
+            file_path = edit_match.group(3)
+            return self.file_tools.edit_file(file_path, old_text, new_text)
+        
+        return None
+    
     def chat(self, message: str, session_id: str = None, context: Dict = None) -> Dict:
         """
         Process a chat message and return response
@@ -239,6 +293,27 @@ Always be helpful, accurate, and responsive.
                 'error': f'Security alert: {reason}. This type of request is not allowed.',
                 'session_id': session_id,
                 'blocked': True
+            }
+        
+        # Check for file commands (if file tools enabled)
+        file_result = self._execute_file_command(message)
+        if file_result:
+            # Format file result as response
+            if file_result.get('success'):
+                if 'content' in file_result:
+                    response = f"📄 **{file_result.get('file_name', 'File')}** ({file_result.get('total_lines', 0)} lines):\n```\n{file_result['content']}\n```"
+                elif 'items' in file_result:
+                    items = '\n'.join(file_result['items'])
+                    response = f"📁 **Directory: {file_result.get('directory', '.')}**\n\n{items}"
+                else:
+                    response = f"✅ {file_result.get('message', 'Success')}"
+            else:
+                response = f"❌ Error: {file_result.get('error', 'Unknown error')}"
+            
+            return {
+                'response': response,
+                'session_id': session_id,
+                'tool_result': file_result
             }
         
         # Get conversation history
