@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="card-title">Step 4: Capabilities & Tools</h2>
+    <p class="card-description">Select what your agent can do.</p>
+    
+    <form method="POST" action="/setup/4" id="capabilities-form">
+        
+        {% for category_key, category in capabilities.items() %}
+        <div class="category-header">
+            <div class="category-title">{{ category.name }}</div>
+            <div class="category-desc">{{ category.description }}</div>
+        </div>
+        
+        <div class="selection-grid">
+            {% for item in category['items'] %}
+            <label class="selection-card"
+                   data-api-key="{{ 'true' if item.requires_api_key else 'false' }}"
+                   data-key-name="{{ item.key_name if item.requires_api_key else '' }}">
+                <input 
+                    type="checkbox" 
+                    name="capabilities" 
+                    value="{{ item.id }}"
+                    {% if item.id in progress.get('step_4', {}).get('capabilities', []) %}checked{% endif %}
+                >
+                <div class="card-title-small">
+                    {{ item.name }}
+                    {% if item.requires_api_key %}<span class="badge badge-api">API Key</span>
+                    {% endif %}
+                </div>
+                <div class="card-desc">{{ item.description }}</div>
+            </label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+        
+        <!-- Dynamic API Key Fields -->
+        <div id="api-key-section" style="margin-top: 2rem;">
+            <h3 style="margin-bottom: 1rem;">API Keys for Selected Tools</h3>
+            <div id="api-key-fields">
+                <!-- Populated by JavaScript based on selection -->
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <a href="/setup/3" class="btn btn-secondary">← Back</a>
+            <button type="submit" class="btn btn-primary">Next →</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Track which capabilities require API keys and secrets
+    const capabilitiesWithKeys = {};
+    const capabilitiesWithSecrets = {};
+    
+    {% for category_key, category in capabilities.items() %}
+    {% for item in category['items'] %}
+    {% if item.requires_api_key %}
+    capabilitiesWithKeys['{{ item.id }}'] = {
+        keyName: '{{ item.key_name }}',
+        description: '{{ item.key_description }}'
+    };
+    {% endif %}
+    {% if item.requires_secret %}
+    capabilitiesWithSecrets['{{ item.id }}'] = {
+        secretName: '{{ item.secret_name }}',
+        description: '{{ item.secret_description }}'
+    };
+    {% endif %}
+    {% endfor %}
+    {% endfor %}
+    
+    function updateApiKeyFields() {
+        const container = document.getElementById('api-key-fields');
+        const selected = Array.from(document.querySelectorAll('input[name="capabilities"]:checked'))
+            .map(cb => cb.value);
+        
+        // Clear existing
+        container.innerHTML = '';
+        
+        // Add fields for selected capabilities that need API keys
+        selected.forEach(capId => {
+            if (capabilitiesWithKeys[capId]) {
+                const keyInfo = capabilitiesWithKeys[capId];
+                const existingValue = '';
+                
+                const fieldHtml = `
+                    <div class="form-group">
+                        <label for="${keyInfo.keyName}">${keyInfo.description} *</label>
+                        <input 
+                            type="password" 
+                            id="${keyInfo.keyName}" 
+                            name="${keyInfo.keyName}" 
+                            placeholder="Enter ${keyInfo.description}"
+                            value="${existingValue}"
+                            required
+                        >
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', fieldHtml);
+            }
+            
+            // Add secret field if required
+            if (capabilitiesWithSecrets[capId]) {
+                const secretInfo = capabilitiesWithSecrets[capId];
+                const existingValue = '';
+                
+                const secretHtml = `
+                    <div class="form-group">
+                        <label for="${secretInfo.secretName}">${secretInfo.description} *</label>
+                        <input 
+                            type="password" 
+                            id="${secretInfo.secretName}" 
+                            name="${secretInfo.secretName}" 
+                            placeholder="Enter ${secretInfo.description}"
+                            value="${existingValue}"
+                            required
+                        >
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', secretHtml);
+            }
+        });
+        
+        // Show/hide section
+        const section = document.getElementById('api-key-section');
+        section.style.display = container.innerHTML ? 'block' : 'none';
+    }
+    
+    // Listen for checkbox changes
+    document.querySelectorAll('input[name="capabilities"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Update card styling
+            if (this.checked) {
+                this.closest('.selection-card').classList.add('selected');
+            } else {
+                this.closest('.selection-card').classList.remove('selected');
+            }
+            
+            // Update API key fields
+            updateApiKeyFields();
+        });
+    });
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set initial selected state
+        document.querySelectorAll('input[name="capabilities"]:checked').forEach(cb => {
+            cb.closest('.selection-card').classList.add('selected');
+        });
+        
+        updateApiKeyFields();
+    });
+</script>
+
+{% endblock %}

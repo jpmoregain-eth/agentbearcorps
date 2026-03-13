@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="card-title">Step 5: Review Your Agent</h2>
+    <p class="card-description">Confirm all your selections before creating the agent.</p>
+    
+    <div style="background: var(--bg-elevated); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+        
+        <!-- Step 1: Identity -->
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+            <h3 style="color: var(--primary); margin-bottom: 0.75rem;">📋 Identity</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                <div><strong>Agent Name:</strong> {{ progress.get('step_1', {}).get('agent_name', 'Not set') }}</div>
+                <div><strong>Owner:</strong> {{ progress.get('step_1', {}).get('owner_name', 'Not set') }}</div>
+                <div><strong>Language:</strong> {{ progress.get('step_1', {}).get('language', 'en') }}</div>
+            </div>
+            <a href="/setup/1" style="font-size: 0.875rem; color: var(--primary);">Edit →</a>
+        </div>
+        
+        <!-- Step 2: Persona -->
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+            <h3 style="color: var(--primary); margin-bottom: 0.75rem;">🎭 Personas</h3>
+            {% set selected_personas = progress.get('step_2', {}).get('personas', []) %}
+            {% if selected_personas %}
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    {% for persona_id in selected_personas %}
+                        <span style="background: rgba(236,72,153,0.2); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem;">
+                            {{ persona_id | title }}
+                        </span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="color: var(--text-secondary);">Default</div>
+            {% endif %}
+            <div style="margin-top: 0.5rem; color: var(--text-secondary);">
+                {{ progress.get('step_2', {}).get('custom_prompt', 'No custom instructions') }}
+            </div>
+            <a href="/setup/2" style="font-size: 0.875rem; color: var(--primary);">Edit →</a>
+        </div>
+        
+        <!-- Step 3: Model -->
+        <div style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+            <h3 style="color: var(--primary); margin-bottom: 0.75rem;">🧠 AI Models</h3>
+            
+            {% set selected_providers = progress.get('step_3', {}).get('providers', []) %}
+            {% if selected_providers %}
+                <div style="margin-bottom: 0.5rem;">
+                    <strong>Providers:</strong>
+                    {% for provider_key in selected_providers %}
+                        {{ ai_providers.get(provider_key, {}).get('name', provider_key) }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                </div>
+                
+                <div style="background: rgba(34,197,94,0.1); padding: 0.5rem 0.75rem; border-radius: 0.5rem; display: inline-block;">
+                    <strong>Primary Model:</strong> {{ progress.get('step_3', {}).get('primary_model', 'Not set') }}
+                </div>
+                <div style="margin-top: 0.5rem; color: var(--success);">✓ {{ selected_providers | length }} API Key(s) configured</div>
+            {% else %}
+                <div style="color: var(--warning);">⚠ No providers selected</div>
+            {% endif %}
+            
+            <a href="/setup/3" style="font-size: 0.875rem; color: var(--primary);">Edit →</a>
+        </div>
+        
+        <!-- Step 4: Capabilities -->
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="color: var(--primary); margin-bottom: 0.75rem;">🛠️ Capabilities</h3>
+            
+            {% set selected_caps = progress.get('step_4', {}).get('capabilities', []) %}
+            {% if selected_caps %}
+                {# Handle both string and list cases #}
+                {% if selected_caps is string %}
+                    {% set selected_caps = [selected_caps] %}
+                {% endif %}
+                <div style="max-height: 200px; overflow-y: auto; padding: 0.75rem; background: var(--bg-dark); border-radius: 0.5rem;">
+                    <ul style="margin: 0; padding-left: 1.25rem; color: var(--text-secondary);">
+                        {% for cap_id in selected_caps %}
+                            <li style="margin-bottom: 0.25rem;">
+                                {{ cap_id | replace('_', ' ') | title }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                    {{ selected_caps | length }} capabilities selected
+                </div>
+            {% else %}
+                <div style="color: var(--warning);">⚠ No capabilities selected</div>
+            {% endif %}
+            
+            <a href="/setup/4" style="font-size: 0.875rem; color: var(--primary);">Edit →</a>
+        </div>
+        
+    </div>
+    
+    <form method="POST" action="/setup/5">
+        <div class="button-group">
+            <a href="/setup/4" class="btn btn-secondary">← Back</a>
+            <button type="submit" class="btn btn-primary">
+                Confirm & Continue →
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

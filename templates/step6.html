@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="card-title">Step 6: Launch Agent</h2>
+    <p class="card-description">Your agent is ready to be created!</p>
+    
+    <!-- Summary Card -->
+    <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(236,72,153,0.1)); border: 1px solid var(--border); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 4rem; margin-bottom: 0.5rem;">🐻</div>
+            <h3 style="margin: 0;">{{ progress.get('step_1', {}).get('agent_name', 'My Agent') }}</h3>
+            <p style="color: var(--text-secondary); margin: 0.5rem 0;">Powered by {{ ai_providers.get(progress.get('step_3', {}).get('provider', ''), {}).get('name', 'AI') }}</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+            <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 0.5rem;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">{{ progress.get('step_4', {}).get('capabilities', []) | length }}</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Capabilities</div>
+            </div>
+            
+            <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 0.5rem;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">
+                    {{ progress.get('step_2', {}).get('personas', []) | length }}
+                </div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Personas</div>
+            </div>
+            
+            <div style="background: var(--bg-elevated); padding: 1rem; border-radius: 0.5rem;">
+                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">🔒</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary);">Encrypted</div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- What Will Happen -->
+    <div style="background: var(--bg-elevated); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem;">
+        <h4 style="margin-top: 0; margin-bottom: 1rem;">What will happen:</h4>
+        
+        <ul style="list-style: none; padding: 0; margin: 0;">
+            <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--success);">✓</span>
+                Generate encrypted configuration file
+            </li>
+            
+            <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--success);">✓</span>
+                Register agent in local registry
+            </li>
+            
+            <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--success);">✓</span>
+                Start agent on available port
+            </li>
+            
+            <li style="padding: 0.5rem 0; display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--success);">✓</span>
+                Enable selected capabilities
+            </li>
+        </ul>
+        
+    </div>
+    
+    <!-- DEMO MODE: Disabled Launch Button -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <button 
+            disabled
+            style="
+                background: var(--bg-elevated);
+                color: var(--text-muted);
+                border: 1px solid var(--border);
+                padding: 1rem 2rem;
+                border-radius: 0.5rem;
+                font-size: 1.1rem;
+                font-weight: 600;
+                cursor: not-allowed;
+                opacity: 0.6;
+            "
+        >
+            🚀 Launch Agent
+        </button>
+        
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(245,158,11,0.1); border-radius: 0.5rem;">
+            <div style="color: var(--warning); font-weight: 600;">⚠ Demo Mode</div>
+            <div style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.5rem;">
+                Launch button is disabled for this demo.<br>
+                In production, this would start your agent.
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Config Preview -->
+    <div style="background: var(--bg-elevated); border-radius: 0.75rem; padding: 1rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.875rem; color: var(--text-secondary);">Config Preview</span>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="downloadConfig()" class="btn btn-secondary" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                    📥 Download YAML
+                </button>
+                <button onclick="toggleConfig()" style="background: none; border: none; color: var(--primary); cursor: pointer;">
+                    Show/Hide
+                </button>
+            </div>
+        </div>
+        
+        <pre id="config-preview" style="display: none; background: var(--bg-dark); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-size: 0.75rem;">
+agent:
+  name: {{ progress.get('step_1', {}).get('agent_name', 'my-agent') }}
+  owner: {{ progress.get('step_1', {}).get('owner_name', 'owner') }}
+  personas: {% for p in progress.get('step_2', {}).get('personas', []) %}{{ p }}{% if not loop.last %}, {% endif %}{% endfor %}
+  language: {{ progress.get('step_1', {}).get('language', 'en') }}
+
+models:
+  primary: {{ progress.get('step_3', {}).get('primary_model', 'claude-sonnet-4-6') }}
+  providers:
+{% for provider in progress.get('step_3', {}).get('providers', []) %}
+    - {{ provider }}:
+        api_key: "ENC:******"
+{% endfor %}
+
+capabilities:
+{% for cap in progress.get('step_4', {}).get('capabilities', []) %}
+  - {{ cap }}
+{% endfor %}
+        </pre>
+        
+    </div>
+    
+    <div class="button-group">
+        <a href="/setup/5" class="btn btn-secondary">← Back to Review</a>
+        <a href="/" class="btn btn-primary">Start Over</a>
+    </div>
+    
+</div>
+
+<script>
+    function toggleConfig() {
+        const preview = document.getElementById('config-preview');
+        if (preview.style.display === 'none') {
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+    
+    function downloadConfig() {
+        const agentName = '{{ progress.get('step_1', {}).get('agent_name', 'my-agent') }}';
+        const ownerName = '{{ progress.get('step_1', {}).get('owner_name', 'owner') }}';
+        const personas = [];
+        {% for p in progress.get('step_2', {}).get('personas', []) %}
+        personas.push('{{ p }}');
+        {% endfor %}
+        const language = '{{ progress.get('step_1', {}).get('language', 'en') }}';
+        const providers = [];
+        {% for p in progress.get('step_3', {}).get('providers', []) %}
+        providers.push('{{ p }}');
+        {% endfor %}
+        const primaryModel = '{{ progress.get('step_3', {}).get('primary_model', 'claude-sonnet-4-6') }}';
+        
+        // Build capabilities list
+        const capabilities = [];
+        {% for cap in progress.get('step_4', {}).get('capabilities', []) %}
+        capabilities.push('{{ cap }}');
+        {% endfor %}
+        
+        // Build YAML content
+        let yamlContent = `# Agent Bear Corps Configuration
+# Generated on ${new Date().toISOString().split('T')[0]}
+
+agent:
+  name: ${agentName}
+  owner: ${ownerName}
+  personas:
+`;
+        
+        if (personas.length > 0) {
+            personas.forEach(p => {
+                yamlContent += `    - ${p}\n`;
+            });
+        } else {
+            yamlContent += `    - professional\n`;
+        }
+        
+        yamlContent += `  language: ${language}
+  version: "1.0.0"
+
+models:
+  primary: ${primaryModel}
+  providers:
+`;
+        
+        if (providers.length > 0) {
+            providers.forEach(provider => {
+                yamlContent += `    ${provider}:
+      api_key: "YOUR_API_KEY_HERE"
+`;
+            });
+        }
+        
+        yamlContent += `
+capabilities:
+`;
+        
+        if (capabilities.length > 0) {
+            capabilities.forEach(cap => {
+                yamlContent += `  ${cap}:
+    enabled: true
+`;
+            });
+        } else {
+            yamlContent += `  # No capabilities selected
+`;
+        }
+        
+        yamlContent += `
+memory:
+  enabled: true
+  db_path: "agent_memory.db"
+`;
+        
+        // Create and trigger download
+        const blob = new Blob([yamlContent], { type: 'text/yaml' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${agentName}-config.yaml`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+</script>
+
+{% endblock %}

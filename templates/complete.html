@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card" style="text-align: center; padding: 3rem 2rem;">
+    <div style="font-size: 5rem; margin-bottom: 1rem;">🎉</div>
+    
+    <h2 class="card-title">Agent Created Successfully!</h2>
+    
+    <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+        Your agent has been configured and is ready to use.
+    </p>
+    
+    <div style="background: var(--bg-elevated); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+        <h4 style="margin-top: 0; margin-bottom: 1rem; color: var(--primary);">Next Steps:</h4>
+        
+        <ol style="margin: 0; padding-left: 1.5rem; color: var(--text-secondary);">
+            <li style="margin-bottom: 0.5rem;">
+                Configuration file saved to <code>generated_agent/</code> directory
+            </li>
+            <li style="margin-bottom: 0.5rem;">
+                Run your agent with: <code>python -m agentbear.core --config your-agent.yaml</code>
+            </li>
+            <li>
+                Check the registry: <code>~/.agentbear/registry.json</code>
+            </li>
+        </ol>
+    </div>
+    
+    <div class="button-group" style="justify-content: center;">
+        <a href="/" class="btn btn-primary">
+            🐻 Create Another Agent
+        </a>
+    </div>
+    
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+        <p style="color: var(--text-muted); font-size: 0.875rem;">
+            Agent Bear Corps 🐻<br>
+            <a href="https://github.com/jpmoregain-eth/agentbear-agent" style="color: var(--primary);">Documentation</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

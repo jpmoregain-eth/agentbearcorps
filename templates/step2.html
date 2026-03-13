@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="card-title">Step 2: Agent Persona</h2>
+    <p class="card-description">Choose how your agent should communicate.</p>
+    
+    <form method="POST" action="/setup/2">
+        
+        <label>Select Persona(s)</label>
+        <div class="selection-grid">
+            {% for persona in personas %}
+            <label class="selection-card {% if persona.id in progress.get('step_2', {}).get('personas', []) %}selected{% endif %}">
+                <input 
+                    type="checkbox" 
+                    name="personas" 
+                    value="{{ persona.id }}"
+                    {% if persona.id in progress.get('step_2', {}).get('personas', []) %}checked{% endif %}
+                >
+                <div class="card-title-small">{{ persona.name }}</div>
+                <div class="card-desc">{{ persona.description }}</div>
+            </label>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="custom_prompt">Custom Instructions (Optional)</label>
+            <textarea 
+                id="custom_prompt" 
+                name="custom_prompt" 
+                placeholder="e.g., Always speak in Singlish, Be extra patient with beginners, Use emojis frequently..."
+            >{{ progress.get('step_2', {}).get('custom_prompt', '') }}</textarea>
+            <p class="help-text">Add any specific instructions for how the agent should behave.</p>
+        </div>
+        
+        <div class="button-group">
+            <a href="/setup/1" class="btn btn-secondary">← Back</a>
+            <button type="submit" class="btn btn-primary">Next →</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Auto-select card styling for checkboxes
+    document.querySelectorAll('input[name="personas"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                this.closest('.selection-card').classList.add('selected');
+            } else {
+                this.closest('.selection-card').classList.remove('selected');
+            }
+        });
+    });
+</script>
+
+{% endblock %}

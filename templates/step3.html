@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <h2 class="card-title">Step 3: AI Model Providers</h2>
+    <p class="card-description">Choose one or more AI providers for your agent.</p>
+    
+    <form method="POST" action="/setup/3" id="model-form">
+        
+        <label>Select Provider(s)</label>
+        <div class="selection-grid">
+            {% for key, provider in ai_providers.items() %}
+            <label class="selection-card {% if key in progress.get('step_3', {}).get('providers', []) %}selected{% endif %}"
+                   data-provider="{{ key }}">
+                <input 
+                    type="checkbox" 
+                    name="providers" 
+                    value="{{ key }}"
+                    {% if key in progress.get('step_3', {}).get('providers', []) %}checked{% endif %}
+                    onchange="updateProviders()"
+                >
+                <div class="card-title-small">
+                    {{ provider.name }}
+                    {% if key == 'anthropic' %}<span class="badge badge-recommended">Recommended</span>{% endif %}
+                </div>
+                <div class="card-desc">{{ provider.description }}</div>
+            </label>
+            {% endfor %}
+        </div>
+        
+        <!-- Dynamic API Key Fields for Selected Providers -->
+        <div id="api-keys-section" style="margin-top: 2rem;">
+            <h4 style="margin-bottom: 1rem; color: var(--primary);">API Keys</h4>
+            <div id="provider-api-keys">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Primary Model Selection -->
+        <div class="form-group" style="margin-top: 2rem;">
+            <label for="primary_model">Primary Model *</label>
+            <select id="primary_model" name="primary_model" required>
+                <option value="">Select primary model...</option>
+            </select>
+            <p class="help-text">This model will be used as the default. Others are available as fallbacks.</p>
+        </div>
+        
+        <div class="button-group">
+            <a href="/setup/2" class="btn btn-secondary">← Back</a>
+            <button type="submit" class="btn btn-primary">Next →</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const providers = {{ ai_providers | tojson }};
+    
+    function updateProviders() {
+        const selectedProviders = Array.from(document.querySelectorAll('input[name="providers"]:checked'))
+            .map(cb => cb.value);
+        
+        // Update card styling
+        document.querySelectorAll('.selection-card').forEach(card => {
+            const providerKey = card.dataset.provider;
+            if (selectedProviders.includes(providerKey)) {
+                card.classList.add('selected');
+            } else {
+                card.classList.remove('selected');
+            }
+        });
+        
+        // Update API key fields
+        updateApiKeyFields(selectedProviders);
+        
+        // Update primary model dropdown
+        updatePrimaryModelOptions(selectedProviders);
+    }
+    
+    function updateApiKeyFields(selectedProviders) {
+        const container = document.getElementById('provider-api-keys');
+        const section = document.getElementById('api-keys-section');
+        
+        // Clear existing
+        container.innerHTML = '';
+        
+        if (selectedProviders.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
+        
+        section.style.display = 'block';
+        
+        // Add API key field for each selected provider
+        selectedProviders.forEach(providerKey => {
+            const provider = providers[providerKey];
+            if (!provider) return;
+            
+            const existingValue = '';
+            
+            const fieldHtml = `
+                <div class="form-group" style="background: var(--bg-dark); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <label for="api_key_${providerKey}">${provider.name} API Key *</label>
+                    <input 
+                        type="password" 
+                        id="api_key_${providerKey}" 
+                        name="api_key_${providerKey}" 
+                        placeholder="Enter ${provider.name} API key"
+                        value="${existingValue}"
+                        required
+                    >
+                    <p class="help-text">
+                        Get your key from <a href="${provider.docs_url}" target="_blank" style="color: var(--primary);">${provider.docs_url}</a>
+                    </p>
+                    
+                    ${providerKey === 'custom' ? `
+                    <div style="margin-top: 0.5rem;">
+                        <label for="custom_endpoint_${providerKey}">Custom Endpoint (optional)</label>
+                        <input 
+                            type="text" 
+                            id="custom_endpoint_${providerKey}" 
+                            name="custom_endpoint_${providerKey}" 
+                            placeholder="http://localhost:11434/v1/chat/completions"
+                        >
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', fieldHtml);
+        });
+    }
+    
+    function updatePrimaryModelOptions(selectedProviders) {
+        const select = document.getElementById('primary_model');
+        const currentValue = select.value;
+        
+        // Clear and rebuild options
+        select.innerHTML = '<option value="">Select primary model...</option>';
+        
+        // Add models from selected providers
+        selectedProviders.forEach(providerKey => {
+            const provider = providers[providerKey];
+            if (!provider || !provider.models) return;
+            
+            // Add optgroup
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = provider.name;
+            
+            provider.models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = `${model.name} (${model.context} context)${model.recommended ? ' (Recommended)' : ''}`;
+                if (model.id === currentValue) {
+                    option.selected = true;
+                }
+                optgroup.appendChild(option);
+            });
+            
+            select.appendChild(optgroup);
+        });
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateProviders();
+    });
+</script>
+
+{% endblock %}
