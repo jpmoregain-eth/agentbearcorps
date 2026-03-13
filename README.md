@@ -1,12 +1,12 @@
-# 🐻 ABC AI - Agent Bear Corps
+# 🐻 Agent Bear Corps - Agent Bear Corps
 
 **Your personal AI agent. Multi-provider. Multi-personality. Yours to command.**
 
 ---
 
-## 🤔 What is ABC AI?
+## 🤔 What is Agent Bear Corps?
 
-ABC AI lets you create your own AI agent that:
+Agent Bear Corps lets you create your own AI agent that:
 - **Chats with you** like a personal assistant
 - **Remembers conversations** (persistent memory)
 - **Uses multiple AI brains** (Anthropic, OpenAI, Google, etc.)
@@ -20,8 +20,8 @@ ABC AI lets you create your own AI agent that:
 ### Step 1: Download
 
 ```bash
-git clone https://github.com/jpmoregain-eth/abc-ai.git
-cd abc-ai
+git clone https://github.com/jpmoregain-eth/Agent Bear Corps.git
+cd Agent Bear Corps
 ```
 
 ### Step 2: Install
@@ -86,7 +86,7 @@ python agentbear.py chat -m "What's the weather like?" --config my-agent.yaml
 After setup, you'll have:
 
 ```
-abc-ai/
+Agent Bear Corps/
 ├── setup.py              ← Run this first (opens browser wizard)
 ├── agentbear.py          ← CLI tool to chat with your agent
 ├── my-agent.yaml         ← Your agent's config (created by wizard)
@@ -179,9 +179,9 @@ pip install --user -r requirements.txt
 ```
 
 ### "Module not found"
-Make sure you're in the `abc-ai` directory:
+Make sure you're in the `Agent Bear Corps` directory:
 ```bash
-cd abc-ai
+cd Agent Bear Corps
 python setup.py
 ```
 
