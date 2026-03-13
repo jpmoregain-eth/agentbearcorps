@@ -254,8 +254,12 @@ def build_config(data: dict) -> dict:
     # Get selected capabilities
     selected_caps = data.get('capabilities', [])
     
-    # Build config structure
-    provider = data.get('provider', 'anthropic')
+    # Get provider - handle both 'provider' (singular) and 'providers' (list)
+    providers = data.get('providers', [])
+    if isinstance(providers, list) and len(providers) > 0:
+        provider = providers[0]  # Use first selected provider
+    else:
+        provider = data.get('provider', 'anthropic')
     
     # Get API key - try provider-specific first, then generic
     api_key = data.get(f'api_key_{provider}', '') or data.get('api_key', '')
