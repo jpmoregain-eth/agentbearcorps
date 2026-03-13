@@ -163,9 +163,20 @@ def launch_agent():
     
     data = request.json
     agent_name = data.get('agent_name', 'my-agent')
-    config_yaml = data.get('config_yaml', '')
     
     try:
+        # Build config from session data (includes encrypted API key!)
+        progress = load_progress()
+        
+        # Combine all step data
+        wizard_data = {}
+        for step_data in progress.values():
+            wizard_data.update(step_data)
+        
+        # Build full config with API key
+        config = build_config(wizard_data)
+        config_yaml = yaml.dump(config, default_flow_style=False)
+        
         # Save config to file
         config_path = Path.home() / '.agentbear' / 'agents' / f'{agent_name}.yaml'
         config_path.parent.mkdir(parents=True, exist_ok=True)

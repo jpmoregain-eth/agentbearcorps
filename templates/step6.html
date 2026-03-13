@@ -246,15 +246,14 @@ memory:
         statusText.innerHTML = 'Starting agent runtime...';
 
         const agentName = '{{ progress.get('step_1', {}).get('agent_name', 'my-agent') }}';
-        const configYaml = buildConfigYaml();
 
         try {
             const response = await fetch('/api/launch', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    agent_name: agentName,
-                    config_yaml: configYaml
+                    agent_name: agentName
+                    // Config built from session on backend (includes encrypted API key)
                 })
             });
 
