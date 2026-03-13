@@ -247,6 +247,11 @@ def build_config(data: dict) -> dict:
     selected_caps = data.get('capabilities', [])
     
     # Build config structure
+    provider = data.get('provider', 'anthropic')
+    
+    # Get API key - try provider-specific first, then generic
+    api_key = data.get(f'api_key_{provider}', '') or data.get('api_key', '')
+    
     config = {
         'agent': {
             'name': data.get('agent_name', 'my-agent'),
@@ -257,10 +262,10 @@ def build_config(data: dict) -> dict:
             'version': '1.0.0'
         },
         'model': {
-            'provider': data.get('provider', 'anthropic'),
+            'provider': provider,
             'name': data.get('model_name', 'claude-sonnet-4-6'),
-            'endpoint': AI_PROVIDERS[data.get('provider', 'anthropic')]['endpoint'],
-            'api_key': encrypt_value(data.get('api_key', '')),
+            'endpoint': AI_PROVIDERS.get(provider, {}).get('endpoint', ''),
+            'api_key': encrypt_value(api_key),
             'max_tokens': 4000,
             'temperature': 0.3
         },
