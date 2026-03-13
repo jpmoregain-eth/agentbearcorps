@@ -15,6 +15,7 @@ from datetime import datetime
 from config import AgentConfig
 from memory import AgentMemory
 from providers import ProviderFactory
+from security import SecurityManager, SecurityConfig, get_security_manager
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,21 @@ class ABCAIAgent:
         self.config = AgentConfig.from_yaml(config_path)
         self.memory = AgentMemory(self.config.memory_db_path) if self.config.memory_enabled else None
         self.providers: Dict[str, Any] = {}
+        
+        # Initialize security manager with default secure config
+        security_config = SecurityConfig(
+            allowed_base_dir=Path(config_path).parent.resolve(),
+            allow_write_outside_base=False,
+            block_shell_execution=False,  # Allow shell but with restrictions
+            command_timeout=30,
+            max_output_lines=1000,
+            max_file_size_mb=10,
+            block_internal_ips=True,
+            block_metadata_endpoints=True,
+            audit_log_path=Path.home() / '.agentbear' / 'security_audit.log'
+        )
+        self.security = SecurityManager(security_config)
+        
         self._setup_providers()
     
     def _setup_providers(self):
@@ -107,6 +123,20 @@ Always be helpful, accurate, and responsive.
         if not session_id:
             session_id = f"session_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         
+        # Security: Check for jailbreak/prompt injection
+        is_safe, reason = self.security.check_jailbreak(message)
+        if not is_safe:
+            self.security.audit('JAILBREAK_BLOCKED', {
+                'session_id': session_id,
+                'reason': reason,
+                'message_preview': message[:100]
+            })
+            return {
+                'error': f'Security alert: {reason}. This type of request is not allowed.',
+                'session_id': session_id,
+                'blocked': True
+            }
+        
         # Get conversation history
         history = []
         if self.memory:
@@ -142,6 +172,9 @@ Always be helpful, accurate, and responsive.
                 max_tokens=4000,
                 temperature=0.3
             )
+            
+            # Security: Redact any secrets from response
+            response_text = self.security.redact_secrets(response_text)
             
             # Store in memory
             if self.memory:
@@ -194,6 +227,112 @@ Always be helpful, accurate, and responsive.
             self.config.primary_model = model_id
             return True
         return False
+
+
+    def safe_execute_command(self, command: str) -> Dict:
+        """
+        Execute a shell command with full security sandboxing.
+        Safe wrapper around subprocess with all security checks.
+        
+        Args:
+            command: Shell command to execute
+            
+        Returns:
+            Dict with 'success', 'output', 'error'
+        """
+        # Use security manager's safe execution
+        return self.security.execute_safely(command)
+    
+    def read_file_safe(self, filepath: str) -> Dict:
+        """
+        Safely read a file within the allowed directory.
+        
+        Args:
+            filepath: Path to file (relative or absolute)
+            
+        Returns:
+            Dict with 'success', 'content', 'error'
+        """
+        # Sanitize path
+        safe_path = self.security.sanitize_path(filepath)
+        if not safe_path:
+            return {
+                'success': False,
+                'content': '',
+                'error': f'Access denied: {filepath} is outside allowed directory'
+            }
+        
+        # Check file size
+        ok, reason = self.security.check_file_size(safe_path)
+        if not ok:
+            return {
+                'success': False,
+                'content': '',
+                'error': reason
+            }
+        
+        # Read file
+        try:
+            with open(safe_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
+            
+            # Redact secrets
+            content = self.security.redact_secrets(content)
+            
+            self.security.audit('FILE_READ', {'path': str(safe_path)})
+            
+            return {
+                'success': True,
+                'content': content,
+                'error': ''
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'content': '',
+                'error': f'Failed to read file: {str(e)}'
+            }
+    
+    def write_file_safe(self, filepath: str, content: str) -> Dict:
+        """
+        Safely write a file within the allowed directory.
+        
+        Args:
+            filepath: Path to file (relative or absolute)
+            content: Content to write
+            
+        Returns:
+            Dict with 'success', 'error'
+        """
+        if not self.security.config.allow_write_outside_base:
+            # Extra check for writes
+            safe_path = self.security.sanitize_path(filepath)
+            if not safe_path:
+                return {
+                    'success': False,
+                    'error': f'Write denied: {filepath} is outside allowed directory'
+                }
+        else:
+            safe_path = Path(filepath)
+        
+        try:
+            # Ensure parent directory exists
+            safe_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(safe_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            
+            self.security.audit('FILE_WRITE', {'path': str(safe_path)})
+            
+            return {
+                'success': True,
+                'error': ''
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Failed to write file: {str(e)}'
+            }
 
 
 if __name__ == '__main__':
