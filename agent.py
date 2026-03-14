@@ -528,9 +528,30 @@ Always be helpful, accurate, and responsive.
         # Note: Must come AFTER code tools to avoid matching "in" inside code
         file_result = self._execute_file_command(message)
         if file_result:
+            # Format file result as response
+            if file_result.get('success'):
+                if 'content' in file_result:
+                    response = f"📄 **{file_result.get('file_name', 'File')}** ({file_result.get('total_lines', 0)} lines):\n```\n{file_result['content']}\n```"
+                elif 'items' in file_result:
+                    items = '\n'.join(file_result['items'])
+                    response = f"📁 **Directory: {file_result.get('directory', '.')}**\n\n{items}"
+                else:
+                    response = f"✅ {file_result.get('message', 'Success')}"
+            else:
+                response = f"❌ Error: {file_result.get('error', 'Unknown error')}"
+            
+            return {
+                'response': response,
+                'session_id': session_id,
+                'tool_result': file_result
+            }
+        
+        # Get conversation history for LLM chat
+        history = []
+        if self.memory:
             history = self.memory.get_conversation_history(session_id, limit=20)
         
-        # Build messages
+        # Build messages for LLM
         messages = [{'role': 'system', 'content': self._get_system_prompt()}]
         
         # Add history
