@@ -44,13 +44,6 @@ web:
   name: Web & Search
   description: Tools for searching and retrieving web content
   items:
-    - id: web_search_brave
-      name: Web Search (Brave)
-      description: Search the web using Brave Search API
-      requires_api_key: true
-      key_name: brave_api_key
-      key_description: Brave Search API Key
-      
     - id: web_fetch
       name: Web Fetch
       description: Retrieve and parse web page content
@@ -101,17 +94,4 @@ dev_tools:
       requires_api_key: true
       key_name: github_token
       key_description: GitHub Personal Access Token
-
-specialized:
-  name: Specialized
-  description: Domain-specific tools and integrations
-  items:
-    - id: crypto_trading
-      name: Crypto Trading
-      description: Connect to Binance, analyze markets
-      requires_api_key: true
-      key_name: binance_api_key
-      key_description: Binance API Key
-      requires_secret: true
-      secret_name: binance_api_secret
       secret_description: Binance API Secret
