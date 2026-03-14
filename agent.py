@@ -407,6 +407,46 @@ Always be helpful, accurate, and responsive.
                 'blocked': True
             }
         
+        # Handle "what can you do" / capabilities questions directly
+        msg_lower = message.lower().strip()
+        if any(phrase in msg_lower for phrase in ['what can you do', 'what are your capabilities', 'what tools do you have', 'help me', 'list capabilities']):
+            capabilities_list = []
+            
+            # Check which tools are actually initialized
+            if self.file_tools:
+                capabilities_list.append("📁 **File Operations:** Read, write, edit files, list directories")
+            if self.code_tools:
+                capabilities_list.append("💻 **Code Tools:** Generate, review, debug, document code")
+            if self.github_tools:
+                capabilities_list.append("🔗 **GitHub:** Read repos, create issues, list files")
+            if self.crypto_tools:
+                capabilities_list.append("💰 **Crypto:** Get prices, charts from exchanges")
+            if self.web_search_tools:
+                capabilities_list.append("🔍 **Web Search:** Search Google, fetch web pages")
+            if self.telegram_app:
+                capabilities_list.append("📱 **Telegram Bot:** This conversation!")
+            
+            # Get LLM chat capability
+            capabilities_list.append("🤖 **AI Chat:** General conversation and questions")
+            
+            response = f"""🐻 **{self.config.name} - My Capabilities:**
+
+{chr(10).join(capabilities_list)}
+
+**Examples you can try:**
+• "Read file ~/.bashrc"
+• "Generate a Python function to sort a list"
+• "Price of BTC"
+• "Search for machine learning tutorials"
+• "List files in ~/Documents"
+
+What would you like to do?"""
+            
+            return {
+                'response': response,
+                'session_id': session_id
+            }
+        
         # IMPORTANT: Check code commands BEFORE file commands
         # so code review/debug takes priority over file operations
         # (prevents "in" inside code from triggering file commands)
