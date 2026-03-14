@@ -68,12 +68,17 @@ class AgentConfig:
         config.primary_model = models.get('primary', 'claude-sonnet-4-6')
         config.providers = models.get('providers', {})
         
-        # Decrypt API keys in providers
+        # Store a separate dict of decrypted keys for runtime use only.
+        # config.providers retains the encrypted (ENC:...) values so that
+        # to_dict() never accidentally serialises plain-text secrets.
+        config._decrypted_providers = {}
         for provider_name, provider_config in config.providers.items():
-            if 'api_key' in provider_config:
-                provider_config['api_key'] = decrypt_value(provider_config['api_key'])
-            if 'api_secret' in provider_config:
-                provider_config['api_secret'] = decrypt_value(provider_config['api_secret'])
+            decrypted = dict(provider_config)
+            if 'api_key' in decrypted:
+                decrypted['api_key'] = decrypt_value(decrypted['api_key'])
+            if 'api_secret' in decrypted:
+                decrypted['api_secret'] = decrypt_value(decrypted['api_secret'])
+            config._decrypted_providers[provider_name] = decrypted
         
         # Capabilities
         config.capabilities = data.get('capabilities', {})
@@ -86,7 +91,11 @@ class AgentConfig:
         return config
     
     def to_dict(self) -> Dict:
-        """Convert to dictionary"""
+        """
+        Convert config to dictionary for serialisation.
+        Provider entries retain their encrypted (ENC:...) API keys —
+        plain-text secrets are never included in the output.
+        """
         return {
             'agent': {
                 'name': self.name,
@@ -97,7 +106,7 @@ class AgentConfig:
             },
             'models': {
                 'primary': self.primary_model,
-                'providers': self.providers
+                'providers': self.providers  # encrypted values only
             },
             'capabilities': self.capabilities,
             'memory': {

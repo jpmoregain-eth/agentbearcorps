@@ -96,7 +96,7 @@ class OpenAIProvider(BaseProvider):
     def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
         """Send message to GPT"""
         response = self.client.chat.completions.create(
-            model=model or "gpt-5-4",
+            model=model or "gpt-4o",
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature
@@ -106,10 +106,12 @@ class OpenAIProvider(BaseProvider):
     def get_model_name(self, model_id: str) -> str:
         """Map model ID to full name"""
         model_map = {
-            "gpt-5-4-pro": "gpt-5-4-pro",
-            "gpt-5-4": "gpt-5-4",
-            "gpt-5-mini": "gpt-5-mini",
-            "gpt-5-nano": "gpt-5-nano"
+            "gpt-4o":        "gpt-4o",
+            "gpt-4o-mini":   "gpt-4o-mini",
+            "gpt-4-turbo":   "gpt-4-turbo",
+            "o1":            "o1",
+            "o1-mini":       "o1-mini",
+            "o3-mini":       "o3-mini",
         }
         return model_map.get(model_id, model_id)
 
@@ -138,7 +140,7 @@ class GoogleProvider(BaseProvider):
             elif msg['role'] == 'user':
                 user_messages.append(msg['content'])
         
-        model_name = model or "gemini-3-pro"
+        model_name = model or "gemini-1.5-pro"
         gen_model = self.genai.GenerativeModel(model_name)
         
         # Combine user messages
@@ -152,11 +154,11 @@ class GoogleProvider(BaseProvider):
     def get_model_name(self, model_id: str) -> str:
         """Map model ID to full name"""
         model_map = {
-            "gemini-3-pro": "gemini-3-pro",
-            "gemini-3-deep-think": "gemini-3-deep-think",
-            "gemini-3-flash": "gemini-3-flash",
-            "gemini-3-1-flash-lite": "gemini-3.1-flash-lite",
-            "gemini-3-pro-image": "gemini-3-pro-image"
+            "gemini-1.5-pro":        "gemini-1.5-pro",
+            "gemini-1.5-flash":      "gemini-1.5-flash",
+            "gemini-2.0-flash":      "gemini-2.0-flash",
+            "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+            "gemini-2.5-pro":        "gemini-2.5-pro-preview-03-25",
         }
         return model_map.get(model_id, model_id)
 
@@ -179,7 +181,7 @@ class XAIProvider(BaseProvider):
     def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
         """Send message to Grok"""
         response = self.client.chat.completions.create(
-            model=model or "grok-4",
+            model=model or "grok-2-latest",
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature
@@ -207,7 +209,7 @@ class DeepSeekProvider(BaseProvider):
     def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
         """Send message to DeepSeek"""
         response = self.client.chat.completions.create(
-            model=model or "deepseek-v3-2",
+            model=model or "deepseek-chat",
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature
@@ -218,7 +220,88 @@ class DeepSeekProvider(BaseProvider):
         return model_id
 
 
-class OllamaProvider(BaseProvider):
+class AlibabaProvider(BaseProvider):
+    """Alibaba Qwen provider (OpenAI-compatible)"""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key, **kwargs)
+        try:
+            import openai
+            self.client = openai.OpenAI(
+                api_key=api_key,
+                base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
+            )
+        except ImportError:
+            raise ImportError("openai package required. Run: pip install openai")
+
+    def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
+        response = self.client.chat.completions.create(
+            model=model or "qwen-plus",
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+
+    def get_model_name(self, model_id: str) -> str:
+        return model_id
+
+
+class MoonshotProvider(BaseProvider):
+    """Moonshot Kimi provider (OpenAI-compatible)"""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key, **kwargs)
+        try:
+            import openai
+            self.client = openai.OpenAI(
+                api_key=api_key,
+                base_url="https://api.moonshot.cn/v1"
+            )
+        except ImportError:
+            raise ImportError("openai package required. Run: pip install openai")
+
+    def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
+        response = self.client.chat.completions.create(
+            model=model or "moonshot-v1-8k",
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+
+    def get_model_name(self, model_id: str) -> str:
+        return model_id
+
+
+class BaiduProvider(BaseProvider):
+    """Baidu ERNIE provider (OpenAI-compatible via Qianfan)"""
+
+    def __init__(self, api_key: str, **kwargs):
+        super().__init__(api_key, **kwargs)
+        try:
+            import openai
+            self.client = openai.OpenAI(
+                api_key=api_key,
+                base_url="https://qianfan.baidubce.com/v2"
+            )
+        except ImportError:
+            raise ImportError("openai package required. Run: pip install openai")
+
+    def chat(self, messages: List[Dict], model: str = None, max_tokens: int = 4000, temperature: float = 0.3) -> str:
+        response = self.client.chat.completions.create(
+            model=model or "ernie-4.0-8k",
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return response.choices[0].message.content
+
+    def get_model_name(self, model_id: str) -> str:
+        return model_id
+
+
+
     """Local Ollama provider"""
     
     def __init__(self, api_key: str = None, base_url: str = "http://localhost:11434", **kwargs):
@@ -282,16 +365,16 @@ class ProviderFactory:
     
     PROVIDERS = {
         'anthropic': AnthropicProvider,
-        'openai': OpenAIProvider,
-        'google': GoogleProvider,
-        'xai': XAIProvider,
-        'deepseek': DeepSeekProvider,
-        'alibaba': DeepSeekProvider,  # Uses OpenAI-compatible API
-        'moonshot': DeepSeekProvider,  # Uses OpenAI-compatible API
-        'baidu': DeepSeekProvider,  # Uses OpenAI-compatible API
-        'ollama': OllamaProvider,
-        'custom': OllamaProvider,
-        'mock': MockProvider,  # For testing
+        'openai':    OpenAIProvider,
+        'google':    GoogleProvider,
+        'xai':       XAIProvider,
+        'deepseek':  DeepSeekProvider,
+        'alibaba':   AlibabaProvider,
+        'moonshot':  MoonshotProvider,
+        'baidu':     BaiduProvider,
+        'ollama':    OllamaProvider,
+        'custom':    OllamaProvider,
+        'mock':      MockProvider,  # For testing
     }
     
     @classmethod

@@ -238,7 +238,10 @@ Just send me any message and I'll respond!"""
     
     def _setup_providers(self):
         """Initialize LLM providers"""
-        for provider_name, provider_config in self.config.providers.items():
+        # Use _decrypted_providers which holds plain-text keys for runtime use.
+        # config.providers retains the encrypted values for safe serialisation.
+        decrypted = getattr(self.config, '_decrypted_providers', self.config.providers)
+        for provider_name, provider_config in decrypted.items():
             api_key = provider_config.get('api_key', '')
             if not api_key or api_key == 'YOUR_API_KEY_HERE':
                 logger.warning(f"API key not set for {provider_name}")

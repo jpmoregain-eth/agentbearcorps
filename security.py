@@ -6,9 +6,11 @@ Enforces safety restrictions by default for mass adoption
 import os
 import re
 import json
+import time
 import logging
 import subprocess
 import ipaddress
+from collections import defaultdict
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
@@ -152,6 +154,8 @@ class SecurityManager:
         self.config = config or SecurityConfig()
         self.blocked_patterns = [re.compile(p, re.IGNORECASE) for p in BLOCKED_COMMANDS]
         self.jailbreak_patterns = [re.compile(p, re.IGNORECASE) for p in JAILBREAK_PATTERNS]
+        # Sliding-window rate limit store: session_id -> list of request timestamps
+        self._rate_limit_store: Dict[str, list] = defaultdict(list)
         self._setup_audit_logging()
     
     def _setup_audit_logging(self):
@@ -415,15 +419,42 @@ class SecurityManager:
     
     def check_rate_limit(self, session_id: str) -> Tuple[bool, str]:
         """
-        Check if session is within rate limits.
-        
+        Check if a session is within its rate limit using a sliding window.
+
+        Tracks requests per session_id over the configured window and enforces
+        the rate_limit_per_minute cap defined in SecurityConfig.
+
         Returns:
             (is_allowed, reason)
         """
-        # Implementation would track requests per session
-        # For now, just log and allow
-        return True, "Rate limit OK"
-    
+        now = time.time()
+        window_seconds = self.config.rate_limit_window_seconds
+        max_requests = self.config.rate_limit_per_minute
+
+        # Prune timestamps outside the current window
+        window_start = now - window_seconds
+        self._rate_limit_store[session_id] = [
+            t for t in self._rate_limit_store[session_id] if t > window_start
+        ]
+
+        current_count = len(self._rate_limit_store[session_id])
+
+        if current_count >= max_requests:
+            self.audit('RATE_LIMIT_EXCEEDED', {
+                'session_id': session_id,
+                'requests_in_window': current_count,
+                'limit': max_requests,
+                'window_seconds': window_seconds
+            })
+            return False, (
+                f"Rate limit exceeded: {current_count} requests in the last "
+                f"{window_seconds}s (max {max_requests})"
+            )
+
+        # Record this request
+        self._rate_limit_store[session_id].append(now)
+        return True, f"Rate limit OK ({current_count + 1}/{max_requests})"
+
     def check_message_size(self, message: str) -> Tuple[bool, str]:
         """Check if message is within size limits"""
         if len(message) > self.config.max_message_length:
